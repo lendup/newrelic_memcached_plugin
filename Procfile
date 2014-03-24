@@ -1,1 +1,1 @@
-worker: bundle exec newrelic_memcached_agent
+worker: newrelic_memcached_agent
