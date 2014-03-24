@@ -1,1 +1,1 @@
-worker: newrelic_memcached_agent
+worker: bin/newrelic_memcached_agent
