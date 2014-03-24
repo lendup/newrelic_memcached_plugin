@@ -38,7 +38,7 @@ module MemcachedAgent
 
   class Agent < NewRelic::Plugin::Agent::Base
     agent_guid "com.newrelic.plugins.memcached.ruby"
-    agent_version "1.0.1"
+    agent_version "1.0.1_lendup"
     agent_config_options :endpoint,:port,:name
     agent_human_labels("Memcached") { "#{name}" }
 
@@ -126,8 +126,36 @@ module MemcachedAgent
 
   end
 
-  NewRelic::Plugin::Config.config_file = File.dirname(__FILE__) + '/config/newrelic_plugin.yml'
+
+  if !["MEMCACHE_ENDPOINT", "MEMCACHE_PORT", "MEMCACHE_NAME", "MEMCACHE_USER", "MEMCACHE_PASSWORD", "NEWRELIC_LICENSE_KEY"].all? {|s| ENV.key? s} then
+    puts "Missing config variables!"
+    exit
+  end
+
+  mvals = {}
+
+  puts ENV.reject { |k,v| !k.start_with? "MEMCACHE"  }.each { |k,v|
+    mvals[k["MEMCACHE_".length..-1].downcase] = v
+  }
+
+  puts mvals
+
+  config_yaml = {
+    "newrelic" => {
+      "license_key" => ENV['NEWRELIC_LICENSE_KEY'],
+      "verbose" => "1"
+    },
+    "agents" => {
+      "memcached" => mvals
+    }
+  }
+
+  #NewRelic::Plugin::Config.config_file = File.dirname(__FILE__) + '/config/newrelic_plugin.yml'
   
+  puts config_yaml.to_yaml
+
+  NewRelic::Plugin::Config.config_yaml = config_yaml.to_yaml
+
   NewRelic::Plugin::Setup.install_agent :memcached,MemcachedAgent
 
   #
